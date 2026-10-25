@@ -1,5 +1,5 @@
 /**
- * URL input + "Fetch video" button.
+ * URL input and fetch button.
  *
  * @param {Object} props
  * @param {string} props.url
@@ -9,23 +9,28 @@
  */
 export default function UrlForm({ url, onUrlChange, onSubmit, isLoading }) {
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4 md:flex-row">
+    <form onSubmit={onSubmit} className="mt-4">
+      <label htmlFor="url" className="text-sm font-medium text-paper">
+        Video link
+      </label>
       <input
-        type="url"
+        id="url"
+        type="text"
+        inputMode="url"
         value={url}
         onChange={(event) => onUrlChange(event.target.value)}
         placeholder="https://www.youtube.com/watch?v=..."
         aria-label="YouTube video URL"
         autoComplete="off"
         spellCheck={false}
-        className="h-14 flex-1 rounded-2xl border border-white/10 bg-zinc-950/70 px-4 text-base text-white placeholder:text-zinc-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+        className="mt-2 h-12 w-full rounded-xl border border-line bg-slate px-4 text-sm text-paper placeholder:text-muted/70 transition focus:border-signal/60 focus:outline-none focus:ring-4 focus:ring-signal/10"
       />
       <button
         type="submit"
         disabled={isLoading}
-        className="h-14 rounded-2xl bg-red-600 px-6 text-base font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+        className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-xl bg-signal px-5 text-sm font-semibold text-ink transition hover:bg-ember focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-paper/70 focus-visible:ring-offset-2 focus-visible:ring-offset-coal disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isLoading ? "Loading..." : "Fetch video"}
+        {isLoading ? "Checking video..." : "Fetch video"}
       </button>
     </form>
   );

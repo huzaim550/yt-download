@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ChevronIcon, DownloadIcon } from "./Icons";
 
 /**
  * Video preview, quality picker and download button.
@@ -23,75 +24,116 @@ export default function VideoCard({
   const isVideoOnly = selectedOption?.hasAudio === false;
 
   return (
-    <section className="mt-8 grid gap-6 rounded-3xl border border-white/10 bg-zinc-950/60 p-5 shadow-xl shadow-black/20 md:grid-cols-[220px_1fr] md:p-6">
-      <div className="relative min-h-[180px] overflow-hidden rounded-2xl border border-white/10 bg-zinc-900">
-        {video.thumbnail ? (
-          <Image
-            src={video.thumbnail}
-            alt=""
-            fill
-            sizes="(min-width: 768px) 220px, 100vw"
-            className="object-cover"
-          />
-        ) : null}
-      </div>
-
-      <div className="flex flex-col justify-between gap-6">
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-red-300">
-            Ready to download
-          </p>
-          <h2 className="text-2xl font-bold text-white">{video.title}</h2>
-
-          <div className="mt-4 flex flex-wrap gap-3 text-sm text-zinc-300">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              {selectedLabel}
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              {video.duration}
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              {video.fileName}
-            </span>
-          </div>
-
-          {video.qualities?.length ? (
-            <div className="mt-5 max-w-xs">
-              <label
-                htmlFor="quality"
-                className="mb-2 block text-sm text-zinc-300"
-              >
-                Choose quality
-              </label>
-              <select
-                id="quality"
-                value={selectedQuality}
-                onChange={(event) => onQualityChange(event.target.value)}
-                className="h-12 w-full rounded-xl border border-white/10 bg-zinc-900 px-3 text-base text-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
-              >
-                {video.qualities.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-
-              {isVideoOnly ? (
-                <p className="mt-2 text-xs text-zinc-400">
-                  Video only — audio is not included yet.
-                </p>
-              ) : null}
-            </div>
+    <section
+      aria-label="Selected video"
+      className="card-in mt-8 overflow-hidden rounded-2xl border border-line bg-coal"
+    >
+      <div className="grid md:grid-cols-[260px_1fr]">
+        <div className="relative flex items-center justify-center overflow-hidden bg-slate md:min-h-[248px]">
+          {video.thumbnail ? (
+            <>
+              <Image
+                src={video.thumbnail}
+                alt=""
+                fill
+                sizes="(min-width: 768px) 260px, 100vw"
+                className="scale-110 object-cover opacity-30 blur-2xl"
+              />
+              <div className="relative m-4 aspect-video w-[calc(100%-2rem)] overflow-hidden rounded-xl border border-paper/10 shadow-2xl shadow-black/50">
+                <Image
+                  src={video.thumbnail}
+                  alt=""
+                  fill
+                  sizes="(min-width: 768px) 228px, 90vw"
+                  className="object-cover"
+                />
+              </div>
+            </>
           ) : null}
         </div>
 
-        <button
-          type="button"
-          onClick={onDownload}
-          className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 to-orange-500 px-5 text-base font-semibold text-white shadow-lg shadow-red-900/40 transition hover:brightness-110 sm:w-auto sm:min-w-[220px]"
-        >
-          Download {fileType.toUpperCase()}
-        </button>
+        <div className="flex flex-col justify-between gap-6 p-5 sm:p-6">
+          <div>
+            <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight text-paper sm:text-3xl">
+              {video.title}
+            </h2>
+
+            <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+              <div className="bg-coal px-4 py-3">
+                <dt className="text-xs text-muted">Resolution</dt>
+                <dd className="mt-1 text-sm font-medium text-paper">
+                  {selectedLabel}
+                </dd>
+              </div>
+              <div className="bg-coal px-4 py-3">
+                <dt className="text-xs text-muted">Duration</dt>
+                <dd className="mt-1 text-sm font-medium tabular-nums text-paper">
+                  {video.duration}
+                </dd>
+              </div>
+              <div className="col-span-2 bg-coal px-4 py-3 sm:col-span-1">
+                <dt className="text-xs text-muted">File</dt>
+                <dd
+                  className="mt-1 truncate text-sm font-medium text-paper"
+                  title={video.fileName}
+                >
+                  {video.fileName}
+                </dd>
+              </div>
+            </dl>
+
+            {video.qualities?.length ? (
+              <div className="mt-5 max-w-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="quality"
+                    className="text-sm font-medium text-paper"
+                  >
+                    Quality
+                  </label>
+                  <span className="text-xs text-muted">
+                    {video.qualities.length} options
+                  </span>
+                </div>
+
+                <div className="relative mt-2">
+                  <select
+                    id="quality"
+                    value={selectedQuality}
+                    onChange={(event) => onQualityChange(event.target.value)}
+                    className="h-11 w-full appearance-none rounded-xl border border-line bg-slate px-4 pr-10 text-sm text-paper transition focus:border-signal/60 focus:outline-none focus:ring-4 focus:ring-signal/10"
+                  >
+                    {video.qualities.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                </div>
+
+                <p className="mt-2 text-xs text-muted">
+                  {isVideoOnly
+                    ? "Video only — audio is not available for this download."
+                    : `Includes ${video.audio?.codec || "audio"}${
+                        video.audio?.bitrate
+                          ? ` at ${video.audio.bitrate} kbps`
+                          : ""
+                      }.`}
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <button
+            type="button"
+            onClick={onDownload}
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-signal px-5 text-sm font-semibold text-ink transition hover:bg-ember focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-paper/70 focus-visible:ring-offset-2 focus-visible:ring-offset-coal sm:w-auto sm:min-w-[200px] sm:self-start"
+          >
+            <DownloadIcon className="h-4 w-4" />
+            Download {fileType.toUpperCase()}
+          </button>
+        </div>
       </div>
     </section>
   );

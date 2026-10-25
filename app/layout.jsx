@@ -1,30 +1,31 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const displayFont = Bricolage_Grotesque({
   subsets: ["latin"],
+  variable: "--font-bricolage",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const bodyFont = Instrument_Sans({
   subsets: ["latin"],
+  variable: "--font-instrument",
+  display: "swap",
 });
 
 export const metadata = {
-  title: "YouTube Downloader",
-  description: "Download YouTube videos directly from the browser.",
+  title: "Reel — YouTube Downloader",
+  description:
+    "Paste a YouTube link, choose a quality, and save the video straight to your device.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full bg-zinc-950`}
+      className={`${displayFont.variable} ${bodyFont.variable} h-full`}
     >
-      <body className="min-h-full bg-zinc-950 text-white antialiased">
-        {children}
-      </body>
+      <body className="min-h-full antialiased">{children}</body>
     </html>
   );
 }

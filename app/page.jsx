@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import UrlForm from "./components/UrlForm";
+import { useEffect, useRef, useState } from "react";
+import Hero from "./components/Hero";
+import HowItWorks from "./components/HowItWorks";
+import Notes from "./components/Notes";
+import SiteFooter from "./components/SiteFooter";
+import SiteNav from "./components/SiteNav";
 import VideoCard from "./components/VideoCard";
+import VideoCardSkeleton from "./components/VideoCardSkeleton";
 
 const INITIAL_STATUS = {
   tone: "idle",
-  message: "Paste a YouTube link and fetch the video.",
-};
-
-const STATUS_STYLES = {
-  idle: "text-zinc-300",
-  loading: "text-zinc-300",
-  success: "text-emerald-300",
-  error: "text-red-300",
+  message: "Paste a link to get started.",
 };
 
 export default function Home() {
@@ -27,6 +25,23 @@ export default function Home() {
   // input afterwards, downloads still use the URL that was actually fetched.
   const [fetchedUrl, setFetchedUrl] = useState("");
 
+  const resultRef = useRef(null);
+
+  // Bring the result into view after a successful fetch, unless it is already
+  // visible. Respect the user's reduced-motion preference.
+  useEffect(() => {
+    if (!videoInfo) return;
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    resultRef.current?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [videoInfo]);
+
   async function handleFetch(event) {
     event.preventDefault();
     if (isLoading) return;
@@ -39,7 +54,7 @@ export default function Home() {
     }
 
     setIsLoading(true);
-    setStatus({ tone: "loading", message: "Checking video details..." });
+    setStatus({ tone: "loading", message: "Checking the video..." });
 
     try {
       const response = await fetch(
@@ -54,7 +69,10 @@ export default function Home() {
       setVideoInfo(data);
       setFetchedUrl(trimmedUrl);
       setSelectedQuality(data.defaultQuality || "highestvideo");
-      setStatus({ tone: "success", message: `Ready to download: ${data.title}` });
+      setStatus({
+        tone: "success",
+        message: `Ready to download: ${data.title}`,
+      });
     } catch (error) {
       setVideoInfo(null);
       setFetchedUrl("");
@@ -93,52 +111,49 @@ export default function Home() {
     );
     setStatus({
       tone: "success",
-      message: `Download started (${option?.label || selectedQuality}).`,
+      message: `Downloading ${option?.label || selectedQuality}. Check your browser's downloads.`,
     });
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#18181b,_#09090b_50%)] px-4 py-10 text-zinc-50 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <header className="mb-8 text-center">
-          <p className="mb-3 inline-flex items-center rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-red-300">
-            YouTube Downloader
-          </p>
-          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-            Download videos in seconds
-          </h1>
-          <p className="mt-4 text-base text-zinc-300 sm:text-lg">
-            Paste a YouTube URL, fetch the video, and download it directly from
-            your browser.
-          </p>
-        </header>
+    <>
+      <a
+        href="#download"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-paper focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
+      >
+        Skip to download
+      </a>
 
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
-          <UrlForm
+      <SiteNav />
+
+      <main id="top">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <Hero
             url={url}
             onUrlChange={setUrl}
             onSubmit={handleFetch}
+            status={status}
             isLoading={isLoading}
           />
 
-          <p
-            role="status"
-            aria-live="polite"
-            className={`mt-4 text-sm ${STATUS_STYLES[status.tone]}`}
-          >
-            {status.message}
-          </p>
-        </section>
+          <div ref={resultRef}>
+            {isLoading ? <VideoCardSkeleton /> : null}
+            {!isLoading && videoInfo ? (
+              <VideoCard
+                video={videoInfo}
+                selectedQuality={selectedQuality}
+                onQualityChange={setSelectedQuality}
+                onDownload={handleDownload}
+              />
+            ) : null}
+          </div>
 
-        {videoInfo ? (
-          <VideoCard
-            video={videoInfo}
-            selectedQuality={selectedQuality}
-            onQualityChange={setSelectedQuality}
-            onDownload={handleDownload}
-          />
-        ) : null}
-      </div>
-    </main>
+          <HowItWorks />
+          <Notes />
+        </div>
+      </main>
+
+      <SiteFooter />
+    </>
   );
 }

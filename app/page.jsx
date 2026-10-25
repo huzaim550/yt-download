@@ -1,69 +1,153 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
 
 export default function Home() {
+  const [url, setUrl] = useState("");
+  const [videoInfo, setVideoInfo] = useState(null);
+  const [status, setStatus] = useState("Paste a YouTube link and fetch the video.");
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedQuality, setSelectedQuality] = useState("highest");
+
+  async function fetchVideoInfo() {
+    if (!url.trim()) {
+      setStatus("Add a YouTube URL first.");
+      return;
+    }
+
+    setIsLoading(true);
+    setStatus("Checking video details...");
+
+    try {
+      const response = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Couldn't load this YouTube video.");
+      }
+
+      setVideoInfo(data);
+      setSelectedQuality(data.defaultQuality || "highest");
+      setStatus(`Ready to download: ${data.title}`);
+    } catch (error) {
+      setVideoInfo(null);
+      setStatus(error.message || "Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handleDownload() {
+    if (!videoInfo) {
+      setStatus("Fetch the video details before downloading.");
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = `/api/download?url=${encodeURIComponent(url)}&quality=${encodeURIComponent(selectedQuality)}`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.click();
+    setStatus(`Downloading ${videoInfo.title} in ${selectedQuality}...`);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#18181b,_#09090b_50%)] px-4 py-10 text-zinc-50 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-8 text-center">
+          <p className="mb-3 inline-flex items-center rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-red-300">
+            YouTube Downloader
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
+            Download videos in seconds
+          </h1>
+          <p className="mt-4 text-base text-zinc-300 sm:text-lg">
+            Paste a YouTube URL, fetch the video, and download it directly from your browser.
+          </p>
+        </header>
+
+        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/30 backdrop-blur-md sm:p-8">
+          <div className="flex flex-col gap-4 md:flex-row">
+            <input
+              type="url"
+              value={url}
+              onChange={(event) => setUrl(event.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="h-14 flex-1 rounded-2xl border border-white/10 bg-zinc-950/70 px-4 text-base text-white placeholder:text-zinc-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <button
+              type="button"
+              onClick={fetchVideoInfo}
+              disabled={isLoading}
+              className="h-14 rounded-2xl bg-red-600 px-6 text-base font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isLoading ? "Loading..." : "Fetch video"}
+            </button>
+          </div>
+
+          <p className="mt-4 text-sm text-zinc-300">{status}</p>
+        </section>
+
+        {videoInfo ? (
+          <section className="mt-8 grid gap-6 rounded-3xl border border-white/10 bg-zinc-950/60 p-5 shadow-xl shadow-black/20 md:grid-cols-[220px_1fr] md:p-6">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-900">
+              <img
+                src={videoInfo.thumbnail}
+                alt={videoInfo.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="flex flex-col justify-between gap-6">
+              <div>
+                <p className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-red-300">
+                  Ready to download
+                </p>
+                <h2 className="text-2xl font-bold text-white">{videoInfo.title}</h2>
+                <div className="mt-4 flex flex-wrap gap-3 text-sm text-zinc-300">
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                    {videoInfo.quality}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                    {videoInfo.duration}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                    {videoInfo.fileName}
+                  </span>
+                </div>
+
+                {videoInfo.qualities?.length ? (
+                  <div className="mt-5 max-w-xs">
+                    <label htmlFor="quality" className="mb-2 block text-sm text-zinc-300">
+                      Choose quality
+                    </label>
+                    <select
+                      id="quality"
+                      value={selectedQuality}
+                      onChange={(event) => setSelectedQuality(event.target.value)}
+                      className="h-12 w-full rounded-xl border border-white/10 bg-zinc-900 px-3 text-base text-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                    >
+                      {videoInfo.qualities.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 to-orange-500 px-5 text-base font-semibold text-white shadow-lg shadow-red-900/40 transition hover:brightness-110 sm:w-auto sm:min-w-[220px]"
+              >
+                Download MP4
+              </button>
+            </div>
+          </section>
+        ) : null}
+      </div>
+    </main>
   );
 }

@@ -1,0 +1,15 @@
+# Build context exclusions. Keep this list small but strict: every excluded file
+# is one less thing copied into the builder stage.
+node_modules
+.next
+.git
+.gitignore
+Dockerfile
+compose.yaml
+README.md
+AGENTS.md
+npm-debug.log*
+.DS_Store
+
+# No build-time env is needed. Runtime vars are passed to `docker run`/compose.
+.env*

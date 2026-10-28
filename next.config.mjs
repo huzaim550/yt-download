@@ -45,6 +45,8 @@ const allowedDevOrigins = process.env.ALLOWED_DEV_ORIGINS
   .filter(Boolean);
 
 const nextConfig = {
+  // Emit a self-contained server bundle (.next/standalone) for the Docker image.
+  output: "standalone",
   // Optional: allow the dev server to be reached from another origin/device.
   ...(allowedDevOrigins?.length ? { allowedDevOrigins } : {}),
   cacheComponents: true,

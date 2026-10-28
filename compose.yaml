@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: yt-download:latest
+    # Reap orphaned processes; the app spawns ffmpeg children.
+    init: true
+    restart: unless-stopped
+    ports:
+      # Override the host port with APP_PORT=3100 if 3000 is already taken.
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      # Per-container cap from lib/download-limiter.js.
+      MAX_CONCURRENT_DOWNLOADS: "2"
+    # HEALTHCHECK is defined in the Dockerfile and inherited here.

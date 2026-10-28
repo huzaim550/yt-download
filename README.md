@@ -247,3 +247,30 @@ long-lived streams, child processes, and request timeouts.
   often work better than serverless or shared cloud hosts.
 - Downloads can be large and long-running, so a platform with streaming
   responses and a generous timeout is required.
+
+## Docker
+
+The image is a multi-stage Alpine build using Next.js standalone output. ffmpeg
+is installed in the runtime stage because `/api/download` spawns it to mux
+audio.
+
+```bash
+docker build -t yt-download .
+docker run --rm --init -p 3000:3000 -e MAX_CONCURRENT_DOWNLOADS=2 yt-download
+```
+
+Or with Compose. Set `APP_PORT` if port 3000 is already in use:
+
+```bash
+APP_PORT=3100 docker compose up --build
+```
+
+Confirm ffmpeg made it into the image:
+
+```bash
+docker run --rm --entrypoint ffmpeg yt-download -version
+```
+
+The container is stateless: media is streamed, not stored, so it needs no
+volumes. `MAX_CONCURRENT_DOWNLOADS` is per container, so running two containers
+allows twice as many simultaneous downloads.

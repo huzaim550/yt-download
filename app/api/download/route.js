@@ -16,6 +16,25 @@ function json(body, status = 200) {
   return Response.json(body, { status, headers: JSON_HEADERS });
 }
 
+function getYouTubeServerErrorMessage(error) {
+  const code = error?.code || error?.name || "";
+  const message = String(error?.message || "");
+
+  if (code === "PLAYER_SOLVE_FAILED" || message.includes("Could not prepare player")) {
+    return "YouTube blocked this server IP while preparing the video. This app needs a non-datacenter IP or a different hosting setup to fetch YouTube metadata.";
+  }
+
+  if (code === "ERR_NO_SUPPORTED_FORMATS" || message.includes("No video formats available")) {
+    return "This video is not available for download from this server.";
+  }
+
+  if (message.includes("Could not play")) {
+    return "YouTube refused to serve this video to this server environment.";
+  }
+
+  return error?.message || "Unable to download this video.";
+}
+
 /**
  * Wrap a Node readable as a streaming Response and release the download slot
  * when the stream closes or fails.
@@ -157,7 +176,7 @@ export async function GET(request) {
       {
         error: ffmpegMissing
           ? "Audio muxing needs ffmpeg on the server. Install it or set FFMPEG_PATH."
-          : error.message || "Unable to download this video.",
+          : getYouTubeServerErrorMessage(error),
       },
       ffmpegMissing ? 503 : 500
     );
